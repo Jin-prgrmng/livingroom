@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>LDK10帖 3Dウォークスルー</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f1ea; --surface:#fffdf8; --ink:#22201c; --muted:#6d675d;
+  --rule:#d9d2c4; --accent:#8a5a2b; --btn:#efece4; --btn-ink:#3a352c;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#16150f; --surface:#1e1d16; --ink:#e9e4d8; --muted:#a49d8e;
+    --rule:#38352c; --accent:#d0a068; --btn:#2b291f; --btn-ink:#e2ddd0;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16150f; --surface:#1e1d16; --ink:#e9e4d8; --muted:#a49d8e;
+  --rule:#38352c; --accent:#d0a068; --btn:#2b291f; --btn-ink:#e2ddd0;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Serif JP",serif;line-height:1.9;font-size:16px;-webkit-text-size-adjust:100%}
+.wrap{max-width:880px;margin:0 auto;padding:24px 16px 64px}
+header{border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:8px}
+h1{font-family:"Noto Sans JP",sans-serif;font-weight:700;font-size:1.26rem;margin:0 0 6px;letter-spacing:.02em}
+.sub{font-family:"Noto Sans JP",sans-serif;font-size:.79rem;color:var(--muted);margin:0}
+nav{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--rule);padding:8px 0 9px;margin-bottom:20px;overflow-x:auto}
+nav ul{display:flex;gap:16px;list-style:none;margin:0;padding:0;white-space:nowrap}
+nav a{font-family:"Noto Sans JP",sans-serif;font-size:.78rem;color:var(--muted);text-decoration:none;border-bottom:1px solid transparent;padding-bottom:2px}
+nav a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:3px;padding:18px 16px;margin:0 0 20px}
+h2{font-family:"Noto Sans JP",sans-serif;font-weight:500;font-size:.93rem;margin:0 0 13px;padding-bottom:8px;border-bottom:1px solid var(--rule);letter-spacing:.04em}
+p{margin:0 0 1em}p:last-child{margin-bottom:0}
+table{width:100%;border-collapse:collapse;font-family:"Noto Sans JP",sans-serif;font-size:.82rem}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-weight:500;color:var(--muted);white-space:nowrap}
+footer{font-family:"Noto Sans JP",sans-serif;font-size:.74rem;color:var(--muted);border-top:1px solid var(--rule);padding-top:14px;line-height:1.8}
+#stage{position:relative;width:100%;aspect-ratio:4/3;background:#ded9cf;border-radius:2px;overflow:hidden;touch-action:none;cursor:grab}
+#stage.dragging{cursor:grabbing}
+#gl{display:block;width:100%;height:100%}
+#mini{position:absolute;top:10px;right:10px;background:rgba(255,253,248,.86);border:1px solid rgba(90,84,72,.3);border-radius:2px;padding:5px}
+#hud{position:absolute;top:10px;left:10px;font-family:"Noto Sans JP",sans-serif;font-size:.68rem;color:#3a352c;background:rgba(255,253,248,.82);border-radius:2px;padding:3px 7px}
+#pad{position:absolute;left:12px;bottom:12px;display:grid;grid-template-columns:repeat(3,40px);grid-template-rows:repeat(2,40px);gap:4px}
+#pad button{border:1px solid rgba(90,84,72,.32);background:rgba(255,253,248,.82);color:#3a352c;border-radius:3px;font-size:15px;line-height:1;padding:0;touch-action:none;-webkit-user-select:none;user-select:none}
+#pad button:active{background:rgba(210,200,180,.95)}
+.views{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.views button{font-family:"Noto Sans JP",sans-serif;font-size:.76rem;padding:7px 11px;border:1px solid var(--rule);background:var(--btn);color:var(--btn-ink);border-radius:3px;cursor:pointer}
+.views button:hover{border-color:var(--accent);color:var(--accent)}
+.note{font-family:"Noto Sans JP",sans-serif;font-size:.74rem;color:var(--muted);margin-top:9px;line-height:1.75}
+#fsb{position:absolute;right:10px;bottom:12px;font-family:"Noto Sans JP",sans-serif;font-size:.72rem;padding:8px 11px;border:1px solid rgba(90,84,72,.32);background:rgba(255,253,248,.86);color:#3a352c;border-radius:3px}
+#stage.expanded{position:fixed;inset:0;width:100%;height:100%;aspect-ratio:auto;z-index:200;border-radius:0}
+body.locked{overflow:hidden}
+@media (max-width:640px){
+ .wrap{padding:18px 12px 56px}
+ #stage{aspect-ratio:auto;height:62vh;min-height:300px}
+ #pad{grid-template-columns:repeat(3,46px);grid-template-rows:repeat(2,46px)}
+ #pad button{font-size:17px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>LDK10帖 3Dウォークスルー</h1>
+  <p class="sub">身長165cmの目の高さ（約153cm）から見た室内。洋室への引き戸は閉じた状態。冷蔵庫は150Lクラスで天板に電子レンジ、キッチンは上下とも扉つきの収納。</p>
+</header>
+<nav><ul>
+  <li><a href="#view">室内を歩く</a></li>
+  <li><a href="#howto">操作</a></li>
+  <li><a href="#spec">家具の寸法</a></li>
+  <li><a href="#check">確認すること</a></li>
+</ul></nav>
+
+<section class="card" id="view">
+<h2>室内を歩く</h2>
+<div id="stage">
+  <canvas id="gl"></canvas>
+  <div id="hud">目線 153cm</div>
+  <div id="mini"></div>
+  <button id="fsb">全画面</button>
+  <div id="pad">
+    <button data-k="ql">↰</button><button data-k="f">▲</button><button data-k="qr">↱</button>
+    <button data-k="l">◀</button><button data-k="b">▼</button><button data-k="r">▶</button>
+  </div>
+</div>
+<div class="views">
+  <button data-v="0">入口から</button>
+  <button data-v="1">キッチンに立つ</button>
+  <button data-v="2">ソファに座る</button>
+  <button data-v="3">窓際から見返す</button>
+  <button data-v="4">冷蔵庫の前</button>
+</div>
+<p class="note">画面をドラッグすると見回せる。左下のボタン、またはキーボードのWASDと矢印キーで歩く。右上の平面図の三角が現在地と向き。スマートフォンでは右下の「全画面」を押すと画面いっぱいに広がる。</p>
+</section>
+
+<section class="card" id="howto">
+<h2>操作</h2>
+<table>
+<tr><th>見回す</th><td>画面をドラッグする。上下にも振れる。</td></tr>
+<tr><th>歩く</th><td>左下の十字ボタン、またはWとSで前後、AとDで左右へ平行移動。左右の矢印キーで向きを変える。</td></tr>
+<tr><th>視点</th><td>立った状態は目線153cm、ソファに座った状態は105cmで計算している。</td></tr>
+</table>
+</section>
+
+<section class="card" id="spec">
+<h2>家具の寸法</h2>
+<table>
+<tr><th>冷蔵庫</th><td>150Lクラス、幅約50×奥行約60×高さ約122cm。腰高のカウンターと高さが近いので、圧迫感が出ない。</td></tr>
+<tr><th>吊戸棚</th><td>幅119×奥行35×高さ70cm、下端は床から140cm。扉は2枚。</td></tr>
+<tr><th>シンク</th><td>間口50×奥行38cm。天板を切り欠いた形。</td></tr>
+<tr><th>ガスコンロ</th><td>2口の据え置き型、幅56×奥行45cm。グリルつき。</td></tr>
+<tr><th>電子レンジ</th><td>幅46×奥行35×高さ28cm。冷蔵庫の天板に載せる。</td></tr>
+<tr><th>キッチンカウンター</th><td>幅90×奥行45×高さ85cm。天板が作業台になるため、約2.1mしかない既設キッチンの手狭さを補える。</td></tr>
+<tr><th>ソファ</th><td>幅160×奥行85cm。下の壁につけ、テレビと正対させる。</td></tr>
+<tr><th>テレビ台</th><td>幅120×奥行40×高さ42cm。テレビは43型前後。視聴距離は約1.7m。</td></tr>
+<tr><th>ローテーブル</th><td>幅90×奥行50×高さ39cm。ソファ前面から30cmあけて置く。</td></tr>
+<tr><th>ラグ</th><td>幅180×奥行170cm。ソファ下からテレビ台の手前まで敷く。</td></tr>
+<tr><th>エアコン</th><td>幅80×高さ29×奥行24cm。窓のある壁の右上、床から202cmの位置。</td></tr>
+<tr><th>カーテン</th><td>丈112cm程度の腰窓用。レールは床から194cm。</td></tr>
+<tr><th>レンジフード</th><td>幅84×奥行62cm、下端は床から150cm。コンロの真上に付く。</td></tr>
+<tr><th>壁付けシェルフ</th><td>奥行24cmの棚2段。床から128cmと162cm。シンクの上に付ける。</td></tr>
+<tr><th>観葉植物</th><td>鉢径34cm、高さ145cm程度。テレビ台と窓の壁のあいだ、北東の角に置く。</td></tr>
+</table>
+</section>
+
+<section class="card" id="check">
+<h2>確認すること</h2>
+<table>
+<tr><th>冷蔵庫の天板</th><td>150Lクラスには、天板に電子レンジを置けない機種と、耐熱天板で置ける機種がある。仕様表で「上に物が置けるか」を必ず確認する。</td></tr>
+<tr><th>カウンターの奥行</th><td>45cmだと炊飯器と電子レンジを並べると手前がふさがる。60cmにすると通路が85cmに減る。</td></tr>
+<tr><th>コンセント</th><td>冷蔵庫用のアース付きコンセントと、カウンター上で使う家電の口数。下の壁になければ配置を組み替える。</td></tr>
+<tr><th>実寸</th><td>この3Dの寸法は10帖を約16平方メートルとして逆算した推定値。内覧時に測って差し替える。</td></tr>
+</table>
+</section>
+
+<footer>作成日 2026年9月2日。間取り図をもとに作成した配置案であり、実測にもとづくものではない。内装と家具の色や質感は雰囲気を示すためのもので、実物の再現ではない。</footer>
+</div>
+<script>
+(function(){
+"use strict";
+var cv=document.getElementById('gl'), stage=document.getElementById('stage');
+var gl=cv.getContext('webgl',{antialias:true,alpha:false});
+if(!gl){stage.innerHTML='<div style="padding:24px;font-family:sans-serif;font-size:14px;color:#3a352c">この端末ではWebGLが使えないため、3D表示ができない。</div>';return;}
+
+/* ---------- 行列 ---------- */
+function m4id(){return new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);}
+function m4mul(a,b){var o=new Float32Array(16),i,j,k,s;
+ for(i=0;i<4;i++)for(j=0;j<4;j++){s=0;for(k=0;k<4;k++)s+=a[k*4+j]*b[i*4+k];o[i*4+j]=s;}return o;}
+function m4persp(fy,ar,n,f){var t=1/Math.tan(fy/2),nf=1/(n-f);
+ return new Float32Array([t/ar,0,0,0, 0,t,0,0, 0,0,(f+n)*nf,-1, 0,0,2*f*n*nf,0]);}
+function m4trans(x,y,z){var m=m4id();m[12]=x;m[13]=y;m[14]=z;return m;}
+function m4scale(x,y,z){var m=m4id();m[0]=x;m[5]=y;m[10]=z;return m;}
+function m4rotX(a){var c=Math.cos(a),s=Math.sin(a),m=m4id();m[5]=c;m[6]=s;m[9]=-s;m[10]=c;return m;}
+function m4rotY(a){var c=Math.cos(a),s=Math.sin(a),m=m4id();m[0]=c;m[2]=-s;m[8]=s;m[10]=c;return m;}
+
+/* ---------- シェーダ ---------- */
+var vs='attribute vec3 aPos;attribute vec3 aNrm;uniform mat4 uProj,uView,uModel;varying vec3 vW,vN;'+
+ 'void main(){vec4 w=uModel*vec4(aPos,1.0);vW=w.xyz;vN=mat3(uModel)*aNrm;gl_Position=uProj*uView*w;}';
+var fs='precision mediump float;varying vec3 vW,vN;uniform vec3 uColor,uLight;uniform sampler2D uTex;'+
+ 'uniform float uHasTex,uTexScale,uUnlit;'+
+ 'void main(){vec3 n=normalize(vN);vec3 base=uColor;'+
+ 'if(uHasTex>0.5){vec2 uv;if(abs(n.y)>0.5)uv=vW.xz;else if(abs(n.x)>0.5)uv=vW.zy;else uv=vW.xy;'+
+ 'base*=texture2D(uTex,uv*uTexScale).rgb;}'+
+ 'if(uUnlit>0.5){gl_FragColor=vec4(base,1.0);return;}'+
+ 'float d=max(dot(n,normalize(uLight)),0.0);float h=0.5+0.5*n.y;'+
+ 'vec3 c=base*(0.44+0.26*h+0.40*d);gl_FragColor=vec4(pow(c,vec3(0.92)),1.0);}';
+function sh(t,src){var s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);
+ if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(s));return s;}
+var prog=gl.createProgram();
+gl.attachShader(prog,sh(gl.VERTEX_SHADER,vs));gl.attachShader(prog,sh(gl.FRAGMENT_SHADER,fs));
+gl.linkProgram(prog);gl.useProgram(prog);
+var A={pos:gl.getAttribLocation(prog,'aPos'),nrm:gl.getAttribLocation(prog,'aNrm')};
+var U={};['uProj','uView','uModel','uColor','uLight','uTex','uHasTex','uTexScale','uUnlit']
+ .forEach(function(k){U[k]=gl.getUniformLocation(prog,k);});
+
+/* ---------- 立方体 ---------- */
+var P=[],N=[],IDX=[];
+var faces=[[[0,0,1],[[0,0,1],[1,0,1],[1,1,1],[0,1,1]]],[[0,0,-1],[[1,0,0],[0,0,0],[0,1,0],[1,1,0]]],
+ [[1,0,0],[[1,0,1],[1,0,0],[1,1,0],[1,1,1]]],[[-1,0,0],[[0,0,0],[0,0,1],[0,1,1],[0,1,0]]],
+ [[0,1,0],[[0,1,1],[1,1,1],[1,1,0],[0,1,0]]],[[0,-1,0],[[0,0,0],[1,0,0],[1,0,1],[0,0,1]]]];
+faces.forEach(function(f,i){f[1].forEach(function(v){P.push(v[0],v[1],v[2]);N.push(f[0][0],f[0][1],f[0][2]);});
+ var b=i*4;IDX.push(b,b+1,b+2,b,b+2,b+3);});
+function buf(t,d,T){var b=gl.createBuffer();gl.bindBuffer(t,b);gl.bufferData(t,new T(d),gl.STATIC_DRAW);return b;}
+var vbP=buf(gl.ARRAY_BUFFER,P,Float32Array), vbN=buf(gl.ARRAY_BUFFER,N,Float32Array),
+    ib=buf(gl.ELEMENT_ARRAY_BUFFER,IDX,Uint16Array);
+
+/* ---------- テクスチャ ---------- */
+function mkTex(cnv){var t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
+ gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
+ gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,cnv);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.REPEAT);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.REPEAT);
+ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR);
+ gl.generateMipmap(gl.TEXTURE_2D);return t;}
+function cnv(n){var c=document.createElement('canvas');c.width=c.height=n;return c;}
+function texWood(){var c=cnv(256),g=c.getContext('2d'),i,k,y;
+ g.fillStyle='#e2d1b4';g.fillRect(0,0,256,256);
+ for(i=0;i<4;i++){var v=Math.floor(216+Math.random()*14);
+  g.fillStyle='rgb('+v+','+(v-19)+','+(v-49)+')';g.fillRect(0,i*64,256,64);
+  for(k=0;k<24;k++){g.strokeStyle='rgba(150,124,88,'+(0.05+Math.random()*0.08)+')';
+   g.lineWidth=0.5+Math.random()*1.1;g.beginPath();y=i*64+Math.random()*64;g.moveTo(0,y);
+   g.bezierCurveTo(70,y+(Math.random()-0.5)*5,170,y+(Math.random()-0.5)*5,256,y+(Math.random()-0.5)*4);g.stroke();}
+  g.strokeStyle='rgba(126,104,74,0.32)';g.lineWidth=1;g.beginPath();g.moveTo(0,i*64+0.5);g.lineTo(256,i*64+0.5);g.stroke();}
+ return mkTex(c);}
+function texOak(){var c=cnv(128),g=c.getContext('2d'),k,y;
+ g.fillStyle='#ddc7a4';g.fillRect(0,0,128,128);
+ for(k=0;k<40;k++){g.strokeStyle='rgba(160,132,94,'+(0.04+Math.random()*0.07)+')';g.lineWidth=0.5+Math.random();
+  g.beginPath();y=Math.random()*128;g.moveTo(0,y);g.bezierCurveTo(40,y+(Math.random()-0.5)*4,90,y+(Math.random()-0.5)*4,128,y+(Math.random()-0.5)*3);g.stroke();}
+ return mkTex(c);}
+function texLinen(){var c=cnv(128),g=c.getContext('2d'),d,i;
+ g.fillStyle='#ded7c8';g.fillRect(0,0,128,128);
+ d=g.getImageData(0,0,128,128);
+ for(i=0;i<d.data.length;i+=4){var n=(Math.random()-0.5)*22;d.data[i]+=n;d.data[i+1]+=n;d.data[i+2]+=n;}
+ g.putImageData(d,0,0);
+ for(i=0;i<128;i+=3){g.strokeStyle='rgba(255,255,255,0.10)';g.beginPath();g.moveTo(i,0);g.lineTo(i,128);g.stroke();
+  g.strokeStyle='rgba(120,110,92,0.08)';g.beginPath();g.moveTo(0,i);g.lineTo(128,i);g.stroke();}
+ return mkTex(c);}
+function texWall(){var c=cnv(128),g=c.getContext('2d'),d,i;
+ g.fillStyle='#f4f2ec';g.fillRect(0,0,128,128);d=g.getImageData(0,0,128,128);
+ for(i=0;i<d.data.length;i+=4){var n=(Math.random()-0.5)*9;d.data[i]+=n;d.data[i+1]+=n;d.data[i+2]+=n;}
+ g.putImageData(d,0,0);return mkTex(c);}
+var T={wood:texWood(),oak:texOak(),linen:texLinen(),wall:texWall()};
+
+/* ---------- シーン ---------- */
+var RW=5.49, RD=2.95, RH=2.40, t=0.10;
+var items=[];
+function hex(h){return [parseInt(h.substr(1,2),16)/255,parseInt(h.substr(3,2),16)/255,parseInt(h.substr(5,2),16)/255];}
+function add(x,y,z,w,h,d,col,tex,ts,unlit){
+ items.push({m:m4mul(m4trans(x,y,z),m4scale(w,h,d)),c:hex(col),t:tex||null,ts:ts||1,u:unlit?1:0});}
+
+/* 床・天井 */
+add(-t,-0.05,-t,RW+2*t,0.05,RD+2*t,'#ffffff','wood',0.83);
+add(-t,RH,-t,RW+2*t,0.06,RD+2*t,'#fbfaf7',null,1);
+/* 北の壁（洋室への引き戸2か所） */
+add(-t,0,-t,0.72+t,RH,t,'#ffffff','wall',0.6);
+add(2.19,0,-t,0.18,RH,t,'#ffffff','wall',0.6);
+add(3.78,0,-t,RW+t-3.78,RH,t,'#ffffff','wall',0.6);
+add(0.72,2.00,-t,1.47,RH-2.00,t,'#ffffff','wall',0.6);
+add(2.37,2.00,-t,1.41,RH-2.00,t,'#ffffff','wall',0.6);
+/* 南の壁 */
+add(-t,0,RD,RW+2*t,RH,t,'#ffffff','wall',0.6);
+/* 西の壁（玄関からの入口） */
+add(-t,0,-t,t,RH,0.07+t,'#ffffff','wall',0.6);
+add(-t,0,0.72,t,RH,RD+t-0.72,'#ffffff','wall',0.6);
+add(-t,2.00,0.07,t,RH-2.00,0.65,'#ffffff','wall',0.6);
+/* 東の壁（腰窓） */
+add(RW,0,-t,t,RH,0.72+t,'#ffffff','wall',0.6);
+add(RW,0,2.21,t,RH,RD+t-2.21,'#ffffff','wall',0.6);
+add(RW,0,0.72,t,0.90,1.49,'#ffffff','wall',0.6);
+add(RW,1.90,0.72,t,RH-1.90,1.49,'#ffffff','wall',0.6);
+/* 窓 */
+add(RW+0.01,0.90,0.72,0.02,1.00,1.49,'#eaf1f4',null,1,1);
+add(RW-0.01,0.88,0.70,0.03,0.04,1.53,'#f2f0ea');
+add(RW-0.01,1.88,0.70,0.03,0.04,1.53,'#f2f0ea');
+add(RW-0.01,0.90,1.44,0.03,1.00,0.05,'#f2f0ea');
+/* 開口の先 */
+add(0.40,-0.05,-1.75,3.70,2.35,0.10,'#e6e1d7',null,1);
+add(0.40,-0.05,-1.70,3.70,0.05,1.60,'#ffffff','wood',0.83);
+add(-1.45,-0.05,-0.40,0.10,2.35,1.60,'#e6e1d7',null,1);
+add(-1.40,-0.05,-0.40,1.30,0.05,1.60,'#ffffff','wood',0.83);
+add(6.10,-1.00,-1.50,0.10,5.00,6.00,'#eef4f6',null,1,1);
+/* 引き戸の枠 */
+add(0.70,0,-0.02,0.04,2.02,0.05,'#e8e2d6');add(2.15,0,-0.02,0.04,2.02,0.05,'#e8e2d6');
+add(0.70,1.98,-0.02,1.49,0.04,0.05,'#e8e2d6');
+add(2.35,0,-0.02,0.04,2.02,0.05,'#e8e2d6');add(3.74,0,-0.02,0.04,2.02,0.05,'#e8e2d6');
+add(2.35,1.98,-0.02,1.43,0.04,0.05,'#e8e2d6');
+/* 引き戸（閉）*/
+add(0.74,0,-0.010,0.71,1.98,0.020,'#f1ede3',null,1);
+add(1.44,0,0.010,0.71,1.98,0.020,'#eeeade',null,1);
+add(1.38,0.92,0.031,0.05,0.16,0.004,'#cdc6b6',null,1);
+add(2.39,0,-0.010,0.68,1.98,0.020,'#f1ede3',null,1);
+add(3.06,0,0.010,0.68,1.98,0.020,'#eeeade',null,1);
+add(3.00,0.92,0.031,0.05,0.16,0.004,'#cdc6b6',null,1);
+
+/* 既設キッチン */
+/* 下部収納（扉つき）*/
+add(0,0,0.90,0.50,0.09,2.02,'#d5d2ca',null,1);
+add(0,0.09,0.87,0.56,0.73,0.28,'#eceae4',null,1);
+add(0,0.09,1.15,0.56,0.53,0.50,'#eceae4',null,1);
+add(0,0.09,1.65,0.56,0.73,1.30,'#eceae4',null,1);
+add(0.56,0.11,0.89,0.03,0.69,0.47,'#f6f4ee',null,1);
+add(0.56,0.11,1.38,0.03,0.69,0.47,'#f6f4ee',null,1);
+add(0.56,0.11,1.87,0.03,0.69,0.47,'#f6f4ee',null,1);
+add(0.56,0.11,2.36,0.03,0.69,0.47,'#f6f4ee',null,1);
+add(0.59,0.735,0.95,0.022,0.028,0.35,'#c2bfb7',null,1);
+add(0.59,0.735,1.44,0.022,0.028,0.35,'#c2bfb7',null,1);
+add(0.59,0.735,1.93,0.022,0.028,0.35,'#c2bfb7',null,1);
+add(0.59,0.735,2.42,0.022,0.028,0.35,'#c2bfb7',null,1);
+/* 天板（シンクの開口をあける）*/
+add(0,0.82,0.85,0.60,0.04,0.30,'#cfd0cc',null,1);
+add(0,0.82,1.65,0.60,0.04,1.30,'#cfd0cc',null,1);
+add(0,0.82,1.15,0.09,0.04,0.50,'#cfd0cc',null,1);
+add(0.47,0.82,1.15,0.13,0.04,0.50,'#cfd0cc',null,1);
+/* シンク（幅50cm）*/
+add(0.09,0.63,1.15,0.38,0.02,0.50,'#b9bab6',null,1);
+add(0.09,0.65,1.15,0.016,0.17,0.50,'#c4c5c1',null,1);
+add(0.454,0.65,1.15,0.016,0.17,0.50,'#c4c5c1',null,1);
+add(0.09,0.65,1.15,0.38,0.17,0.016,'#c4c5c1',null,1);
+add(0.09,0.65,1.634,0.38,0.17,0.016,'#c4c5c1',null,1);
+add(0.25,0.646,1.36,0.07,0.012,0.07,'#84857f',null,1);
+add(0.04,0.86,1.33,0.07,0.035,0.07,'#c4c5c1',null,1);
+add(0.055,0.895,1.345,0.04,0.24,0.04,'#c4c5c1',null,1);
+add(0.06,1.11,1.352,0.21,0.028,0.026,'#c4c5c1',null,1);
+add(0.09,1.135,1.352,0.11,0.022,0.024,'#b8b9b5',null,1);
+/* ガスコンロ（2口）*/
+add(0.04,0.86,2.22,0.45,0.075,0.56,'#33322f',null,1);
+add(0.045,0.935,2.225,0.44,0.008,0.55,'#242320',null,1);
+add(0.11,0.943,2.355,0.30,0.012,0.022,'#4c4b47',null,1);
+add(0.249,0.943,2.215,0.022,0.012,0.30,'#4c4b47',null,1);
+add(0.225,0.935,2.331,0.07,0.035,0.07,'#3f3e3a',null,1);
+add(0.11,0.943,2.635,0.30,0.012,0.022,'#4c4b47',null,1);
+add(0.249,0.943,2.495,0.022,0.012,0.30,'#4c4b47',null,1);
+add(0.225,0.935,2.611,0.07,0.035,0.07,'#3f3e3a',null,1);
+add(0.485,0.885,2.34,0.02,0.05,0.32,'#4c4b47',null,1);
+add(0.49,0.955,2.26,0.015,0.02,0.10,'#595752',null,1);
+add(0.49,0.955,2.68,0.015,0.02,0.10,'#595752',null,1);
+add(0.06,0.937,2.90,0.41,0.012,0.04,'#4c4b47',null,1);
+add(0,0.86,0.87,0.04,0.32,2.08,'#efece5',null,1);
+/* 冷蔵庫 150L */
+add(1.58,0,2.35,0.50,1.22,0.60,'#f3f2ee',null,1);
+add(1.575,0.84,2.335,0.51,0.015,0.02,'#dcd9d2',null,1);
+add(2.01,0.94,2.325,0.045,0.22,0.02,'#c6c3bb',null,1);
+add(2.01,0.42,2.325,0.045,0.22,0.02,'#c6c3bb',null,1);
+/* 電子レンジ */
+add(1.60,1.22,2.40,0.46,0.28,0.35,'#f1f0ec',null,1);
+add(1.605,1.225,2.395,0.455,0.27,0.008,'#e8e6e0',null,1);
+add(1.62,1.26,2.388,0.28,0.19,0.010,'#3a3c3e',null,1);
+add(1.93,1.27,2.388,0.11,0.17,0.010,'#dedbd4',null,1);
+add(1.895,1.28,2.378,0.022,0.14,0.014,'#c6c3bb',null,1);
+/* 腰高キッチンカウンター（オーク） */
+add(2.08,0.06,2.50,0.90,0.76,0.45,'#ffffff','oak',1.6);
+add(2.06,0.82,2.48,0.94,0.04,0.49,'#f7f2e8','oak',1.6);
+add(2.11,0,2.53,0.05,0.06,0.05,'#c8b18d');add(2.93,0,2.53,0.05,0.06,0.05,'#c8b18d');
+add(2.11,0,2.88,0.05,0.06,0.05,'#c8b18d');add(2.93,0,2.88,0.05,0.06,0.05,'#c8b18d');
+add(2.16,0.86,2.60,0.30,0.20,0.26,'#d9caa8',null,1);
+add(2.62,0.86,2.62,0.16,0.28,0.16,'#eceae4',null,1);
+/* ラグ */
+add(3.55,0.001,0.50,1.80,0.012,1.70,'#ffffff','linen',5.0);
+/* ソファ */
+add(3.75,0.14,2.10,1.60,0.30,0.85,'#ffffff','linen',6.0);
+add(3.75,0.14,2.80,1.60,0.68,0.15,'#ffffff','linen',6.0);
+add(3.75,0.14,2.10,0.16,0.46,0.85,'#ffffff','linen',6.0);
+add(5.19,0.14,2.10,0.16,0.46,0.85,'#ffffff','linen',6.0);
+add(3.93,0.44,2.16,0.60,0.10,0.60,'#f2eee4','linen',6.0);
+add(4.60,0.44,2.16,0.60,0.10,0.60,'#f2eee4','linen',6.0);
+add(3.82,0,2.16,0.06,0.14,0.06,'#c8b18d');add(5.26,0,2.16,0.06,0.14,0.06,'#c8b18d');
+add(3.82,0,2.80,0.06,0.14,0.06,'#c8b18d');add(5.26,0,2.80,0.06,0.14,0.06,'#c8b18d');
+/* テレビ台とテレビ */
+add(3.87,0.08,0.02,1.16,0.32,0.36,'#ffffff','oak',1.6);
+add(3.85,0.40,0,1.20,0.04,0.40,'#f7f2e8','oak',1.6);
+add(3.90,0,0.05,0.05,0.08,0.05,'#c8b18d');add(4.95,0,0.05,0.05,0.08,0.05,'#c8b18d');
+add(3.90,0,0.31,0.05,0.08,0.05,'#c8b18d');add(4.95,0,0.31,0.05,0.08,0.05,'#c8b18d');
+add(4.37,0.44,0.16,0.16,0.06,0.10,'#3a3a38',null,1);
+add(3.975,0.50,0.17,0.95,0.55,0.035,'#26262a',null,1);
+add(3.985,0.51,0.205,0.93,0.53,0.005,'#15161a',null,1,1);
+/* 観葉植物 */
+add(5.09,0,0.05,0.34,0.30,0.34,'#d3cbbc',null,1);
+add(5.24,0.28,0.20,0.04,0.50,0.04,'#8d7d62',null,1);
+add(5.08,0.66,0.205,0.36,0.78,0.03,'#7c9868',null,1);
+add(5.245,0.70,0.02,0.03,0.72,0.42,'#6e8b5c',null,1);
+add(5.11,0.94,0.15,0.30,0.42,0.22,'#84a06f',null,1);
+/* ローテーブル */
+add(4.10,0.35,1.30,0.90,0.04,0.50,'#f7f2e8','oak',1.6);
+add(4.18,0.12,1.36,0.74,0.03,0.38,'#ffffff','oak',1.6);
+add(4.16,0,1.36,0.05,0.35,0.05,'#c8b18d');add(4.89,0,1.36,0.05,0.35,0.05,'#c8b18d');
+add(4.16,0,1.69,0.05,0.35,0.05,'#c8b18d');add(4.89,0,1.69,0.05,0.35,0.05,'#c8b18d');
+add(4.40,0.39,1.45,0.16,0.09,0.16,'#e6e0d2',null,1);
+/* エアコン（窓の壁の右上） */
+add(5.25,2.02,2.10,0.24,0.29,0.80,'#f7f6f2',null,1);
+add(5.235,2.06,2.13,0.02,0.07,0.74,'#e0ded7',null,1);
+/* カーテン */
+add(5.40,1.94,0.52,0.04,0.03,1.78,'#c9c3b6',null,1);
+add(5.34,0.82,0.55,0.12,1.12,0.33,'#ffffff','linen',6.0);
+add(5.30,0.82,0.60,0.06,1.12,0.22,'#f4efe2','linen',6.0);
+add(5.34,0.82,2.00,0.12,1.12,0.33,'#ffffff','linen',6.0);
+add(5.30,0.82,2.05,0.06,1.12,0.22,'#f4efe2','linen',6.0);
+/* レンジフードと壁付けシェルフ */
+add(0,1.52,2.08,0.62,0.30,0.84,'#eeece6',null,1);
+add(0.02,1.49,2.10,0.60,0.03,0.80,'#c9c8c3',null,1);
+add(0,1.82,2.32,0.30,0.58,0.36,'#eeece6',null,1);
+add(0,1.40,0.87,0.35,0.70,1.19,'#eceae4',null,1);
+add(0.35,1.42,0.89,0.03,0.66,0.575,'#f6f4ee',null,1);
+add(0.35,1.42,1.475,0.03,0.66,0.575,'#f6f4ee',null,1);
+add(0.38,1.52,1.432,0.022,0.30,0.022,'#c2bfb7',null,1);
+add(0.38,1.52,1.492,0.022,0.30,0.022,'#c2bfb7',null,1);
+add(0,1.38,0.87,0.36,0.02,1.19,'#e2dfd7',null,1);
+/* 天井照明 */
+add(2.45,2.30,1.20,0.52,0.10,0.52,'#faf8f3',null,1,1);
+
+/* ---------- 描画 ---------- */
+var proj=m4id(), view=m4id();
+var light=[0.80,0.52,0.16];
+function resize(){var r=stage.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);
+ cv.width=Math.max(1,Math.round(r.width*dpr));cv.height=Math.max(1,Math.round(r.height*dpr));
+ gl.viewport(0,0,cv.width,cv.height);proj=m4persp(62*Math.PI/180,r.width/r.height,0.05,60);}
+window.addEventListener('resize',resize);
+
+gl.enable(gl.DEPTH_TEST);gl.clearColor(0.87,0.855,0.825,1);
+gl.bindBuffer(gl.ARRAY_BUFFER,vbP);gl.enableVertexAttribArray(A.pos);gl.vertexAttribPointer(A.pos,3,gl.FLOAT,false,0,0);
+gl.bindBuffer(gl.ARRAY_BUFFER,vbN);gl.enableVertexAttribArray(A.nrm);gl.vertexAttribPointer(A.nrm,3,gl.FLOAT,false,0,0);
+gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);
+gl.activeTexture(gl.TEXTURE0);gl.uniform1i(U.uTex,0);
+
+function draw(){
+ gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+ gl.uniformMatrix4fv(U.uProj,false,proj);
+ gl.uniformMatrix4fv(U.uView,false,view);
+ gl.uniform3fv(U.uLight,light);
+ var lastT=null;
+ for(var i=0;i<items.length;i++){var it=items[i];
+  gl.uniformMatrix4fv(U.uModel,false,it.m);
+  gl.uniform3fv(U.uColor,it.c);
+  gl.uniform1f(U.uUnlit,it.u);
+  if(it.t){if(lastT!==it.t){gl.bindTexture(gl.TEXTURE_2D,T[it.t]);lastT=it.t;}
+   gl.uniform1f(U.uHasTex,1);gl.uniform1f(U.uTexScale,it.ts);}
+  else{gl.uniform1f(U.uHasTex,0);}
+  gl.drawElements(gl.TRIANGLES,36,gl.UNSIGNED_SHORT,0);}
+}
+
+/* ---------- カメラ・操作 ---------- */
+var EYE=1.53, cam={x:0.60,z:0.45,yaw:0,pitch:-0.03,eye:EYE};
+function faceTo(fx,fz){cam.yaw=Math.atan2(-fx,-fz);}
+var views=[[0.60,0.45,0.86,0.51,EYE,-0.02],[0.95,2.00,0.88,-0.48,EYE,-0.05],
+ [4.55,2.52,0.11,-0.99,1.05,0.02],[4.95,0.90,-0.88,0.47,EYE,-0.03],[1.83,1.95,0.05,0.99,EYE,-0.22]];
+function setView(i){var v=views[i];cam.x=v[0];cam.z=v[1];faceTo(v[2],v[3]);cam.eye=v[4];cam.pitch=v[5];
+ document.getElementById('hud').textContent='目線 '+Math.round(v[4]*100)+'cm';}
+setView(0);
+Array.prototype.forEach.call(document.querySelectorAll('.views button'),function(b){
+ b.addEventListener('click',function(){setView(+b.dataset.v);});});
+
+var boxes=[[-0.05,0.60,0.85,2.95],[1.58,2.08,2.35,2.95],[2.06,3.00,2.48,2.95],
+ [3.75,5.35,2.10,2.95],[3.85,5.05,0,0.40],[5.07,5.45,0.03,0.41],[4.10,5.00,1.30,1.80]];
+var RAD=0.30;
+function blocked(x,z){
+ if(x<RAD||x>RW-RAD||z<RAD||z>RD-RAD)return true;
+ for(var i=0;i<boxes.length;i++){var b=boxes[i];
+  if(x>b[0]-RAD&&x<b[1]+RAD&&z>b[2]-RAD&&z<b[3]+RAD)return true;}
+ return false;}
+function move(dx,dz){var nx=cam.x+dx,nz=cam.z+dz;
+ if(blocked(cam.x,cam.z)){cam.x=nx;cam.z=nz;return;}
+ if(!blocked(nx,cam.z))cam.x=nx;
+ if(!blocked(cam.x,nz))cam.z=nz;}
+
+var keys={};
+window.addEventListener('keydown',function(e){keys[e.key.toLowerCase()]=true;
+ if(['arrowup','arrowdown','arrowleft','arrowright',' '].indexOf(e.key.toLowerCase())>=0)e.preventDefault();});
+window.addEventListener('keyup',function(e){keys[e.key.toLowerCase()]=false;});
+var btn={};
+Array.prototype.forEach.call(document.querySelectorAll('#pad button'),function(b){
+ var k=b.dataset.k;
+ function on(e){e.preventDefault();btn[k]=true;} function off(e){btn[k]=false;}
+ b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);
+ b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off);});
+
+var drag=null;
+var fsb=document.getElementById('fsb');
+fsb.addEventListener('click',function(){
+ var on=stage.classList.toggle('expanded');
+ document.body.classList.toggle('locked',on);
+ fsb.textContent=on?'閉じる':'全画面';
+ setTimeout(resize,50);});
+if(window.ResizeObserver)new ResizeObserver(function(){resize();}).observe(stage);
+stage.addEventListener('pointerdown',function(e){
+ if(e.target.closest('#pad')||e.target.id==='fsb')return;
+ drag={x:e.clientX,y:e.clientY};stage.classList.add('dragging');
+ stage.setPointerCapture(e.pointerId);});
+stage.addEventListener('pointermove',function(e){
+ if(!drag)return;
+ cam.yaw-=(e.clientX-drag.x)*0.0045;
+ cam.pitch-=(e.clientY-drag.y)*0.0035;
+ cam.pitch=Math.max(-0.85,Math.min(0.85,cam.pitch));
+ drag.x=e.clientX;drag.y=e.clientY;});
+function endDrag(){drag=null;stage.classList.remove('dragging');}
+stage.addEventListener('pointerup',endDrag);stage.addEventListener('pointercancel',endDrag);
+
+/* ---------- ミニマップ ---------- */
+var MS=26, mini=document.getElementById('mini');
+function r(x,z,w,d,f){return '<rect x="'+(x*MS)+'" y="'+(z*MS)+'" width="'+(w*MS)+'" height="'+(d*MS)+'" fill="'+f+'"/>';}
+mini.innerHTML='<svg width="'+(RW*MS+6)+'" height="'+(RD*MS+6)+'" viewBox="-3 -3 '+(RW*MS+6)+' '+(RD*MS+6)+'">'+
+ r(0,0,RW,RD,'#efece4')+
+ r(3.55,0.50,1.80,1.70,'#e7e2d6')+
+ r(0,0.87,0.58,2.08,'#d8d3c6')+r(1.58,2.35,0.50,0.60,'#b9b3a5')+r(2.08,2.50,0.90,0.45,'#d8d3c6')+
+ r(3.75,2.10,1.60,0.85,'#c4a888')+r(3.85,0,1.20,0.40,'#d8d3c6')+r(4.10,1.30,0.90,0.50,'#cbb491')+
+ '<circle cx="'+(5.26*MS)+'" cy="'+(0.22*MS)+'" r="'+(0.20*MS)+'" fill="#7c9868"/>'+
+ '<rect x="0" y="0" width="'+(RW*MS)+'" height="'+(RD*MS)+'" fill="none" stroke="#5a5448" stroke-width="1.4"/>'+
+ '<line x1="'+(0.72*MS)+'" y1="0" x2="'+(2.19*MS)+'" y2="0" stroke="#cbc3b0" stroke-width="3"/>'+
+ '<line x1="'+(2.37*MS)+'" y1="0" x2="'+(3.78*MS)+'" y2="0" stroke="#cbc3b0" stroke-width="3"/>'+
+ '<line x1="'+(RW*MS)+'" y1="'+(0.72*MS)+'" x2="'+(RW*MS)+'" y2="'+(2.21*MS)+'" stroke="#8fa6b0" stroke-width="3"/>'+
+ '<g id="mk"><polygon points="0,-6 5,6 -5,6" fill="#8a5a2b"/></g></svg>';
+var mk=mini.querySelector('#mk');
+
+/* ---------- ループ ---------- */
+var last=performance.now();
+function tick(now){
+ var dt=Math.min(0.05,(now-last)/1000);last=now;
+ var sp=1.5*dt, tr=1.6*dt;
+ var fx=-Math.sin(cam.yaw), fz=-Math.cos(cam.yaw);
+ var rx=-fz, rz=fx;
+ if(keys['w']||keys['arrowup']||btn.f)move(fx*sp,fz*sp);
+ if(keys['s']||keys['arrowdown']||btn.b)move(-fx*sp,-fz*sp);
+ if(keys['a']||btn.l)move(-rx*sp,-rz*sp);
+ if(keys['d']||btn.r)move(rx*sp,rz*sp);
+ if(keys['arrowleft']||btn.ql)cam.yaw+=tr;
+ if(keys['arrowright']||btn.qr)cam.yaw-=tr;
+ view=m4mul(m4mul(m4rotX(-cam.pitch),m4rotY(-cam.yaw)),m4trans(-cam.x,-cam.eye,-cam.z));
+ draw();
+ mk.setAttribute('transform','translate('+(cam.x*MS).toFixed(1)+','+(cam.z*MS).toFixed(1)+') rotate('+(-cam.yaw*180/Math.PI).toFixed(1)+')');
+ requestAnimationFrame(tick);}
+resize();requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
